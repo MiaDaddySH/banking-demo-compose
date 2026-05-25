@@ -7,13 +7,38 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.bankingdemo.navigation.Routes
+import com.junfengtech.bankingdemo.di.AppContainer
 import com.junfengtech.bankingdemo.ui.dashboard.DashboardScreen
 import com.junfengtech.bankingdemo.ui.login.LoginScreen
 import com.junfengtech.bankingdemo.ui.transactiondetail.TransactionDetailScreen
 
 @Composable
-fun AppNavHost() {
+fun AppNavHost(
+    appContainer: AppContainer
+) {
     val navController = rememberNavController()
+
+    fun navigateToDashboard() {
+        navController.navigate(Routes.Dashboard) {
+            popUpTo(Routes.Login) {
+                inclusive = true
+            }
+        }
+    }
+
+    fun navigateToLogin() {
+        navController.navigate(Routes.Login) {
+            popUpTo(Routes.Dashboard) {
+                inclusive = true
+            }
+        }
+    }
+
+    fun navigateToTransactionDetail(transactionId: String) {
+        navController.navigate(
+            Routes.transactionDetail(transactionId)
+        )
+    }
 
     NavHost(
         navController = navController,
@@ -22,11 +47,7 @@ fun AppNavHost() {
         composable(Routes.Login) {
             LoginScreen(
                 onLoginSuccess = {
-                    navController.navigate(Routes.Dashboard) {
-                        popUpTo(Routes.Login) {
-                            inclusive = true
-                        }
-                    }
+                    navigateToDashboard()
                 }
             )
         }
@@ -34,17 +55,12 @@ fun AppNavHost() {
         composable(Routes.Dashboard) {
             DashboardScreen(
                 onLogout = {
-                    navController.navigate(Routes.Login) {
-                        popUpTo(Routes.Dashboard) {
-                            inclusive = true
-                        }
-                    }
+                    navigateToLogin()
                 },
                 onTransactionClick = { transactionId ->
-                    navController.navigate(
-                        Routes.transactionDetail(transactionId)
-                    )
-                }
+                    navigateToTransactionDetail(transactionId)
+                },
+                transactionRepository = appContainer.transactionRepository
             )
         }
 
@@ -55,13 +71,12 @@ fun AppNavHost() {
                     type = NavType.StringType
                 }
             )
-        ) { backStackEntry ->
-            val transactionId = backStackEntry.arguments
-                ?.getString(Routes.TransactionIdArg)
-                .orEmpty()
-
+        ) {
             TransactionDetailScreen(
-                transactionId = transactionId
+                onBack = {
+                    navController.popBackStack()
+                },
+                transactionRepository = appContainer.transactionRepository
             )
         }
     }

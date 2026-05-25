@@ -23,16 +23,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.junfengtech.bankingdemo.domain.repository.TransactionRepository
 import com.junfengtech.bankingdemo.ui.theme.BankingDemoTheme
 
 @Composable
 fun DashboardScreen(
     onLogout: () -> Unit,
     onTransactionClick: (String) -> Unit,
-    viewModel: DashboardViewModel = viewModel()
+    transactionRepository: TransactionRepository
 ) {
+    val viewModel: DashboardViewModel = viewModel(
+        factory = DashboardViewModelFactory(
+            repository = transactionRepository
+        )
+    )
+
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
@@ -55,23 +66,101 @@ fun DashboardScreen(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreenContent(
     uiState: DashboardUiState,
     onAction: (DashboardAction) -> Unit
 ) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text("Banking Demo")
+                },
+                actions = {
+                    TextButton(
+                        onClick = {
+                            onAction(DashboardAction.LogoutClicked)
+                        }
+                    ) {
+                        Text("Logout")
+                    }
+                }
+            )
+        }
+    ) { innerPadding ->
+        DashboardBody(
+            uiState = uiState,
+            onAction = onAction,
+            modifier = Modifier.padding(innerPadding)
+        )
+    }
+}
+
+@Composable
+private fun DashboardBody(
+    uiState: DashboardUiState,
+    onAction: (DashboardAction) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    when {
+        uiState.isLoading -> {
+            Column(
+                modifier = modifier
+                    .fillMaxSize()
+                    .padding(24.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Loading dashboard...",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+        }
+
+        uiState.errorMessage.isNotEmpty() -> {
+            Column(
+                modifier = modifier
+                    .fillMaxSize()
+                    .padding(24.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = uiState.errorMessage,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+        }
+
+        else -> {
+            DashboardContent(
+                uiState = uiState,
+                onAction = onAction,
+                modifier = modifier
+            )
+        }
+    }
+}
+
+@Composable
+private fun DashboardContent(
+    uiState: DashboardUiState,
+    onAction: (DashboardAction) -> Unit,
+    modifier: Modifier = Modifier
+) {
     LazyColumn(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
             DashboardHeader(
-                userName = uiState.userName,
-                onLogout = {
-                    onAction(DashboardAction.LogoutClicked)
-                }
+                userName = uiState.userName
             )
         }
 
@@ -110,8 +199,7 @@ fun DashboardScreenContent(
 
 @Composable
 private fun DashboardHeader(
-    userName: String,
-    onLogout: () -> Unit
+    userName: String
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -129,12 +217,6 @@ private fun DashboardHeader(
                 text = userName,
                 style = MaterialTheme.typography.headlineMedium
             )
-        }
-
-        OutlinedButton(
-            onClick = onLogout
-        ) {
-            Text("Logout")
         }
     }
 }

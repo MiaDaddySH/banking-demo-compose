@@ -14,7 +14,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             BankingDemoTheme {
-                AppNavHost()
+                AppNavHost(
+                    appContainer = (application as BankingDemoApplication).appContainer
+                )
             }
         }
     }

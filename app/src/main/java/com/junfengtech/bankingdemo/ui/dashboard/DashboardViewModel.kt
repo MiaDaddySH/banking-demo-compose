@@ -2,50 +2,31 @@ package com.junfengtech.bankingdemo.ui.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.junfengtech.bankingdemo.domain.model.Transaction
+import com.junfengtech.bankingdemo.domain.repository.TransactionRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class DashboardViewModel : ViewModel() {
-
+class DashboardViewModel(
+    private val repository: TransactionRepository
+) : ViewModel() {
     private val _uiState = MutableStateFlow(
-        DashboardUiState(
-            transactions = listOf(
-                TransactionUiModel(
-                    id = "tx_salary",
-                    title = "Salary",
-                    subtitle = "Today",
-                    amount = "+€3,200.00"
-                ),
-                TransactionUiModel(
-                    id = "tx_rent",
-                    title = "Rent",
-                    subtitle = "Yesterday",
-                    amount = "-€1,250.00"
-                ),
-                TransactionUiModel(
-                    id = "tx_rewe",
-                    title = "REWE",
-                    subtitle = "May 22",
-                    amount = "-€46.80"
-                ),
-                TransactionUiModel(
-                    id = "tx_netflix",
-                    title = "Netflix",
-                    subtitle = "May 20",
-                    amount = "-€12.99"
-                )
-            )
-        )
+        DashboardUiState(isLoading = true)
     )
-
     val uiState: StateFlow<DashboardUiState> = _uiState.asStateFlow()
+
     private val _event = MutableSharedFlow<DashboardEvent>()
     val event: SharedFlow<DashboardEvent> = _event.asSharedFlow()
+
+    init {
+        loadRecentTransactions()
+    }
 
     fun onAction(action: DashboardAction) {
         when (action) {
@@ -55,6 +36,27 @@ class DashboardViewModel : ViewModel() {
 
             is DashboardAction.TransactionClicked -> {
                 openTransactionDetail(action.transactionId)
+            }
+        }
+    }
+    private fun loadRecentTransactions() {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    isLoading = true,
+                    errorMessage = ""
+                )
+            }
+
+            val transactions = repository.getRecentTransactions()
+
+            _uiState.update {
+                it.copy(
+                    isLoading = false,
+                    transactions = transactions.map { transaction ->
+                        transaction.toUiModel()
+                    }
+                )
             }
         }
     }
@@ -75,5 +77,14 @@ class DashboardViewModel : ViewModel() {
             // sessionManager.clear()
             _event.emit(DashboardEvent.LoggedOut)
         }
+    }
+
+    private fun Transaction.toUiModel(): TransactionUiModel {
+        return TransactionUiModel(
+            id = id,
+            title = title,
+            subtitle = date,
+            amount = amount
+        )
     }
 }
