@@ -27,23 +27,16 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.junfengtech.bankingdemo.domain.repository.TransactionRepository
 import com.junfengtech.bankingdemo.ui.theme.BankingDemoTheme
 
 @Composable
 fun DashboardScreen(
     onLogout: () -> Unit,
     onTransactionClick: (String) -> Unit,
-    transactionRepository: TransactionRepository
+    viewModel: DashboardViewModel = hiltViewModel()
 ) {
-    val viewModel: DashboardViewModel = viewModel(
-        factory = DashboardViewModelFactory(
-            repository = transactionRepository
-        )
-    )
-
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {

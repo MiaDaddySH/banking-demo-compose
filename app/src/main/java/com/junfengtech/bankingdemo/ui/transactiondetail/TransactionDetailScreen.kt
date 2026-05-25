@@ -24,21 +24,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.junfengtech.bankingdemo.domain.repository.TransactionRepository
 
 @Composable
 fun TransactionDetailScreen(
     onBack: () -> Unit,
-    transactionRepository: TransactionRepository
+    viewModel: TransactionDetailViewModel = hiltViewModel()
 ) {
-    val viewModel: TransactionDetailViewModel = viewModel(
-        factory = TransactionDetailViewModelFactory(
-            repository = transactionRepository
-        )
-    )
-
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     TransactionDetailScreenContent(

@@ -3,8 +3,9 @@ package com.junfengtech.bankingdemo.data.repository
 import com.junfengtech.bankingdemo.domain.model.Transaction
 import com.junfengtech.bankingdemo.domain.repository.TransactionRepository
 import kotlinx.coroutines.delay
+import javax.inject.Inject
 
-class MockTransactionRepository : TransactionRepository {
+class MockTransactionRepository @Inject constructor() : TransactionRepository {
 
     private val transactions = listOf(
         Transaction(

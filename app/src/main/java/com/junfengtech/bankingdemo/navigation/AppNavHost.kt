@@ -7,15 +7,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.bankingdemo.navigation.Routes
-import com.junfengtech.bankingdemo.di.AppContainer
 import com.junfengtech.bankingdemo.ui.dashboard.DashboardScreen
 import com.junfengtech.bankingdemo.ui.login.LoginScreen
 import com.junfengtech.bankingdemo.ui.transactiondetail.TransactionDetailScreen
 
 @Composable
-fun AppNavHost(
-    appContainer: AppContainer
-) {
+fun AppNavHost() {
     val navController = rememberNavController()
 
     fun navigateToDashboard() {
@@ -59,8 +56,7 @@ fun AppNavHost(
                 },
                 onTransactionClick = { transactionId ->
                     navigateToTransactionDetail(transactionId)
-                },
-                transactionRepository = appContainer.transactionRepository
+                }
             )
         }
 
@@ -75,8 +71,7 @@ fun AppNavHost(
             TransactionDetailScreen(
                 onBack = {
                     navController.popBackStack()
-                },
-                transactionRepository = appContainer.transactionRepository
+                }
             )
         }
     }

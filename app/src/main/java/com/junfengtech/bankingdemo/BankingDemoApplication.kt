@@ -2,10 +2,7 @@ package com.junfengtech.bankingdemo
 
 
 import android.app.Application
-import com.junfengtech.bankingdemo.di.AppContainer
+import dagger.hilt.android.HiltAndroidApp
 
-class BankingDemoApplication : Application() {
-    val appContainer: AppContainer by lazy {
-        AppContainer()
-    }
-}
+@HiltAndroidApp
+class BankingDemoApplication : Application()
